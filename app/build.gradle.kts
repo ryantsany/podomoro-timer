@@ -42,6 +42,9 @@ android {
 }
 
 dependencies {
+    implementation("io.github.ehsannarmani:compose-charts:0.1.10")
+    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
