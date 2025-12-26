@@ -1,6 +1,5 @@
 package com.agiztya.podomoro.ui.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.agiztya.podomoro.ui.theme.BackgroundColor
 
 // --- 1. STATEFUL (Screen Utama yang dipakai di App) ---
 @Composable
@@ -53,6 +53,7 @@ fun SettingScreenContent(
     onToggleDarkMode: (Boolean) -> Unit
 ) {
     Scaffold(
+        containerColor = BackgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -71,7 +72,7 @@ fun SettingScreenContent(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White
+                    containerColor = BackgroundColor
                 )
             )
         }
@@ -79,7 +80,6 @@ fun SettingScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundGrey)
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
@@ -91,13 +91,13 @@ fun SettingScreenContent(
                     value = "$podomoroLength min",
                     onClick = { }
                 )
-                Divider(color = BackgroundGrey, thickness = 1.dp)
+                HorizontalDivider(color = BackgroundColor, thickness = 1.dp)
                 SettingsItem(
                     title = "Short Break Length",
                     value = "$shortBreakLength min",
                     onClick = { }
                 )
-                Divider(color = BackgroundGrey, thickness = 1.dp)
+                HorizontalDivider(color = BackgroundColor, thickness = 1.dp)
                 SettingsItem(
                     title = "Long Break Length",
                     value = "$longBreakLength min",
@@ -122,7 +122,6 @@ fun SettingScreenContent(
 }
 
 // --- Helper Components Tetap Sama ---
-val BackgroundGrey = Color(0xFFF2F6F8)
 val TextBlue = Color(0xFF6B7CB8)
 val LabelGrey = Color(0xFF9AA5B1)
 
