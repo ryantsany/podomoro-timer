@@ -42,6 +42,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,7 +74,7 @@ fun Timer(
     modifier: Modifier = Modifier,
     strokeWidth: Dp = 8.dp,
     inactiveBarColor: Color = Color.LightGray,
-    activeBarColor: Color = Color(0xFFFF5722),
+    activeBarColor: Color ,
 ) {
 
     val progress = currentTime / totalTime.toFloat()
@@ -125,8 +126,8 @@ fun Timer(
 }
 
 @Composable
-fun BottomBar(modifier: Modifier = Modifier){
-    var selectedIndex by remember { mutableStateOf(0) }
+fun BottomBar(selectedIndex: Int,onIndexChange: (Int) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true){
+
 
     val items = listOf(
         "Pomodoro",
@@ -144,17 +145,21 @@ fun BottomBar(modifier: Modifier = Modifier){
     ) {
         items.forEachIndexed { index, title ->
             val isSelected = selectedIndex == index
+            val itemColor = if (selectedIndex == 0) Color(0xFFFF5722) else Color(0xFF66BB6A)
 
             NavigationBarItem(
                 selected = isSelected,
+                enabled = enabled,
                 modifier = Modifier,
                 onClick = {
-                    selectedIndex = index
+                    onIndexChange(index)
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFFF5722),
+                    selectedIconColor = itemColor,
                     unselectedTextColor = Color.Gray,
-                    indicatorColor = Color.White
+                    indicatorColor = Color.White,
+                    disabledIconColor = Color.LightGray,
+                    disabledTextColor = Color.LightGray
                 ),
                 icon = {
                     Text(
@@ -172,11 +177,18 @@ fun BottomBar(modifier: Modifier = Modifier){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimerScreen(modifier: Modifier = Modifier){
-    val totalTime = 25 * 60 * 1000L
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val totalTime = if (selectedTab == 0) 1 * 60 * 1000L else 5 * 60 * 1000L
 
     var isTimerRunning by remember { mutableStateOf(false) }
     var currentTime by remember { mutableStateOf(totalTime) }
     var textField by remember { mutableStateOf("") }
+
+    //reset timer saat pindah tab
+    LaunchedEffect(selectedTab) {
+        currentTime = totalTime
+        isTimerRunning = false
+    }
 
     Scaffold(
         topBar = {
@@ -190,14 +202,17 @@ fun TimerScreen(modifier: Modifier = Modifier){
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = {}
+                            onClick = {} ,
+                            enabled = !isTimerRunning
                         ) {
                             Icon(painter = painterResource(R.drawable.history),
                                 contentDescription = "History")
                         }
                         Text("Focus Timer", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         IconButton(
-                            onClick = {}
+                            onClick = {},
+                            enabled = !isTimerRunning
+
                         ) {
                             Icon(painter = painterResource(R.drawable.settings),
                                 contentDescription = "Settings")
@@ -206,7 +221,14 @@ fun TimerScreen(modifier: Modifier = Modifier){
                 }
             )
         },
-        bottomBar = { BottomBar(modifier) }
+        bottomBar = {
+            BottomBar(
+                selectedIndex = selectedTab,
+                onIndexChange = { selectedTab = it },
+                enabled = !isTimerRunning,
+                modifier = modifier
+            )
+        }
     ) {innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
 
@@ -225,10 +247,13 @@ fun TimerScreen(modifier: Modifier = Modifier){
                         totalTime = totalTime,
                         currentTime = currentTime,
                         isTimeRunning = isTimerRunning,
+                        activeBarColor = if (selectedTab == 0) Color(0xFFFF5722) else Color(0xFF66BB6A),
                         onTimeChange = { newTime ->
                             currentTime = newTime
                             if (newTime <= 0L) {
                                 isTimerRunning = false
+                                if (selectedTab == 0)
+                                    selectedTab = 1
                             }
                         },
                         modifier = Modifier.size(250.dp)
@@ -236,49 +261,90 @@ fun TimerScreen(modifier: Modifier = Modifier){
 
 
                 }
-                
 
+                //if condition for checking if timer is running and make every button disable for pressing (beside pause)
                 Spacer(modifier.padding(top = 20.dp))
+                if (isTimerRunning) {
+                    if (selectedTab == 0) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.height(50.dp).padding(16.dp)
 
-                // Text field
-                BasicTextField(
-                    value = textField,
-                    onValueChange = {newText ->
-                        textField = newText
-                    },
-                    modifier = modifier.width(250.dp).height(50.dp).shadow(
-                            elevation = 2.dp,
-                    shape = RoundedCornerShape(20.dp),
-                    clip = true
-                ).background(Color.White),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier.padding(16.dp)
                         ) {
-                            if (textField.isEmpty()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                //making inputted text appear on screen
                                 Text(
-                                    "What are you working on?",
-                                    color = Color.LightGray
+                                    text="Focusing on:",
+                                    color = Color.Gray,
+                                    fontSize = 16.sp,
+                                    fontWeight= FontWeight.Medium
+                                )
+                                Text(
+                                    text=textField.ifEmpty { "Task"},
+                                    color = Color.Gray,
+                                    fontSize = 16.sp,
+                                    fontWeight= FontWeight.Bold
                                 )
                             }
-                            innerTextField()
                         }
+
+                    }else{
+                        Spacer(modifier.height(50.dp))
                     }
-                )
+                }else {
+                    if (selectedTab == 0) {
+                        // Text field
+                        BasicTextField(
+                            value = textField,
+                            onValueChange = { newText ->
+                                textField = newText
+                            },
+                            modifier = modifier.width(250.dp).height(50.dp).shadow(
+                                elevation = 2.dp,
+                                shape = RoundedCornerShape(20.dp),
+                                clip = true
+                            ).background(Color.White),
+                            decorationBox = { innerTextField ->
+                                Box(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    if (textField.isEmpty())
+                                        Text(
+                                            "What are you working on?",
+                                            color = Color.LightGray
+                                        )
+                                    innerTextField()
+                                }
+                            }
+                        )
+                    }else{
+                        Spacer(modifier.height(50.dp))
+                    }
+                }
                 Spacer(modifier.padding(top = 20.dp))
 
-                // if condition for button colors
+                // if condition for button colors and pause logic
                 val buttonColor =
-                    if (!isTimerRunning) Color(0xFFFF5722)
-                    else Color.White
+                    if (!isTimerRunning) {
+                        if (selectedTab == 0) Color(0xFFFF5722) else Color(0xFF66BB6A)
+                    } else {
+                        Color.White
+                    }
                 val textColor =
                     if(!isTimerRunning) Color.White
-                    else Color(0xFFFF5722)
+                    else if (selectedTab == 0) Color(0xFFFF5722)
+                    else Color(0xFF66BB6A)
                 val borderColor =
                     if(!isTimerRunning) null
-                    else BorderStroke(2.dp, Color(0xFFFF5722))
+                    else if (selectedTab == 0) BorderStroke(2.dp, Color(0xFFFF5722))
+                    else BorderStroke(2.dp, Color(0xFF66BB6A))
+                val buttonTextString =
+                    if(isTimerRunning) "Pause"
+                    else if(selectedTab == 0) "Start Focus"
+                    else "Start Break"
 
-                // This is start button
+
+                // This is start button/Pause button
                 Button(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = buttonColor,
@@ -302,11 +368,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
                             clip = true
                         )
                 ) {
-                    if(isTimerRunning){
-                        Text(text= "Pause", fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
-                    }else{
-                        Text(text= "Start Focus", fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
-                    }
+                    Text(text= buttonTextString, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                 }
             }
         }
