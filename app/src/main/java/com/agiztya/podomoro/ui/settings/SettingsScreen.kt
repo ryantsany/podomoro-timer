@@ -1,5 +1,6 @@
 package com.agiztya.podomoro.ui.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +25,11 @@ fun SettingScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
+    // Intercept back gesture
+    BackHandler {
+        onBack()
+    }
+
     // Ambil data asli dari ViewModel
     val podomoroLength by viewModel.podomoroLength.collectAsState()
     val shortBreakLength by viewModel.shortBreakLength.collectAsState()
@@ -121,7 +127,7 @@ fun SettingScreenContent(
     }
 }
 
-// --- Helper Components Tetap Sama ---
+// --- Helper Components ---
 val TextBlue = Color(0xFF6B7CB8)
 val LabelGrey = Color(0xFF9AA5B1)
 
@@ -180,13 +186,10 @@ fun SettingsSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolea
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                // Warna Thumb (bulatan)
                 checkedThumbColor = Color.White,
                 uncheckedThumbColor = Color.White,
-
-                // Warna Track (latar belakang pil)
                 checkedTrackColor = Color(0xFFFF5722),
-                uncheckedTrackColor = Color.LightGray, // Warna dasar abu-abu
+                uncheckedTrackColor = Color.LightGray,
                 uncheckedBorderColor = Color.Transparent,
                 checkedBorderColor = Color.Transparent    
             )
@@ -195,7 +198,6 @@ fun SettingsSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolea
 }
 
 
-// --- PREVIEW YANG BENAR ---
 @Preview(showBackground = true, showSystemUi = true, device = "id:pixel_5")
 @Composable
 fun PreviewSettings() {
