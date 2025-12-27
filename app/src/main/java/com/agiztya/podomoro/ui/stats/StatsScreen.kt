@@ -37,13 +37,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agiztya.podomoro.ui.theme.BackgroundColor
 import com.agiztya.podomoro.ui.theme.BrightChartBar
+import com.agiztya.podomoro.ui.theme.HistoryBlue
+import com.agiztya.podomoro.ui.theme.HistoryBlueLight
+import com.agiztya.podomoro.ui.theme.HistoryGreen
+import com.agiztya.podomoro.ui.theme.HistoryGreenLight
+import com.agiztya.podomoro.ui.theme.HistoryPurple
+import com.agiztya.podomoro.ui.theme.HistoryPurpleLight
+import com.agiztya.podomoro.ui.theme.HistoryRed
+import com.agiztya.podomoro.ui.theme.HistoryRedLight
 import com.agiztya.podomoro.ui.theme.LightChartBar
 import com.agiztya.podomoro.ui.theme.LightGreyBackground
 import com.agiztya.podomoro.ui.theme.LightGreyText
@@ -303,10 +310,10 @@ fun RecentHistory(modifier: Modifier = Modifier) {
         )
 
         val historyItems = listOf(
-            HistoryItemData("Study Math", "10:00 AM", "25 min", Icons.Default.Edit, Color(0xFFEF4444), Color(0xFFFEE2E2)),
-            HistoryItemData("Reading", "9:15 AM", "25 min", Icons.Default.Add, Color(0xFF3B82F6), Color(0xFFDBEAFE)),
-            HistoryItemData("Coding", "8:00 AM", "50 min", Icons.Default.Call, Color(0xFF10B981), Color(0xFFD1FAE5)),
-            HistoryItemData("Writing", "Yesterday", "25 min", Icons.Default.Edit, Color(0xFF8B5CF6), Color(0xFFEDE9FE))
+            HistoryItemData("Study Math", "10:00 AM", "25 min", Icons.Default.Edit, HistoryRed, HistoryRedLight),
+            HistoryItemData("Reading", "9:15 AM", "25 min", Icons.Default.Add, HistoryBlue, HistoryBlueLight),
+            HistoryItemData("Coding", "8:00 AM", "50 min", Icons.Default.Call, HistoryGreen, HistoryGreenLight),
+            HistoryItemData("Writing", "Yesterday", "25 min", Icons.Default.Edit, HistoryPurple, HistoryPurpleLight)
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -385,8 +392,6 @@ fun HistoryCard(item: HistoryItemData) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
-    val context = LocalContext.current
-
     CenterAlignedTopAppBar(
         modifier = modifier,
         title = {

@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agiztya.podomoro.ui.theme.BackgroundColor
+import com.agiztya.podomoro.ui.theme.OrangePrimary
+import com.agiztya.podomoro.ui.theme.SettingsLabelGrey
+import com.agiztya.podomoro.ui.theme.SettingsTextBlue
 
 // --- 1. STATEFUL (Screen Utama yang dipakai di App) ---
 @Composable
@@ -128,14 +131,11 @@ fun SettingScreenContent(
 }
 
 // --- Helper Components ---
-val TextBlue = Color(0xFF6B7CB8)
-val LabelGrey = Color(0xFF9AA5B1)
-
 @Composable
 fun SectionHeader(text: String) {
     Text(
         text = text,
-        color = LabelGrey,
+        color = SettingsLabelGrey,
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 8.dp, start = 8.dp)
@@ -165,7 +165,7 @@ fun SettingsItem(title: String, value: String, showDivider: Boolean = true, onCl
     ) {
         Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(value, color = TextBlue, fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
+            Text(value, color = SettingsTextBlue, fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = Color.Gray.copy(alpha = 0.5f))
         }
     }
@@ -188,7 +188,7 @@ fun SettingsSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolea
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
                 uncheckedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFFFF5722),
+                checkedTrackColor = OrangePrimary,
                 uncheckedTrackColor = Color.LightGray,
                 uncheckedBorderColor = Color.Transparent,
                 checkedBorderColor = Color.Transparent    

@@ -18,16 +18,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-val FocusRedColor = Color(0xFFFF6F61)
+import com.agiztya.podomoro.ui.theme.FocusRed
 
 @Composable
-fun TimerCompleteScreen() {
+fun TimerCompleteScreen(
+    onTakeABreak: () -> Unit,
+    onSkip: () -> Unit
+) {
     // Container Utama (Background Full Screen)
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(FocusRedColor),
+            .background(FocusRed),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -67,7 +69,7 @@ fun TimerCompleteScreen() {
 
             // --- Subjudul ---
             Text(
-                text = "You just focused for 25 minutes on Study Math.",
+                text = "You just focused for 25 minutes on your task.",
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -78,10 +80,10 @@ fun TimerCompleteScreen() {
 
             // --- Tombol "Take a Break" ---
             Button(
-                onClick = { /* Aksi tombol */ },
+                onClick = onTakeABreak,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
-                    contentColor = FocusRedColor
+                    contentColor = FocusRed
                 ),
                 shape = RoundedCornerShape(50), // Membuat tombol bulat (pill shape)
                 modifier = Modifier
@@ -104,18 +106,17 @@ fun TimerCompleteScreen() {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
-                    .clickable { /* Aksi skip */ }
+                    .clickable { onSkip() }
                     .padding(8.dp) // Padding agar area klik lebih luas
             )
         }
     }
 }
 
-// PREVIEW JUGA DISESUAIKAN NAMANYA
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun TimerCompleteScreenPreview() {
     MaterialTheme {
-        TimerCompleteScreen()
+        TimerCompleteScreen(onTakeABreak = {}, onSkip = {})
     }
 }

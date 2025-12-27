@@ -18,16 +18,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-val MintGreenColor = Color(0xFF6EDC9F)
+import com.agiztya.podomoro.ui.theme.MintGreen
 
 @Composable
-fun BreakCompleteScreen() {
+fun BreakCompleteScreen(
+    onStartNextSession: () -> Unit,
+    onExtend: () -> Unit
+) {
     // 1. Container Utama
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MintGreenColor),
+            .background(MintGreen),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -79,10 +81,10 @@ fun BreakCompleteScreen() {
 
             // 5. Tombol Utama (Putih)
             Button(
-                onClick = { /* Nanti diisi navigasi */ },
+                onClick = onStartNextSession,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
-                    contentColor = MintGreenColor
+                    contentColor = MintGreen
                 ),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
@@ -105,7 +107,7 @@ fun BreakCompleteScreen() {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
-                    .clickable { /* Nanti diisi logika extend */ }
+                    .clickable { onExtend() }
                     .padding(8.dp)
             )
         }
@@ -115,5 +117,5 @@ fun BreakCompleteScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewBreakComplete() {
-    BreakCompleteScreen()
+    BreakCompleteScreen(onStartNextSession = {}, onExtend = {})
 }

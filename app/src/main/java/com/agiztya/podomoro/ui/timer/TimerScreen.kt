@@ -55,8 +55,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import com.agiztya.podomoro.R
 import com.agiztya.podomoro.StatsActivity
+import com.agiztya.podomoro.ui.complete.BreakCompleteScreen
+import com.agiztya.podomoro.ui.complete.TimerCompleteScreen
 import com.agiztya.podomoro.ui.settings.SettingScreen
 import com.agiztya.podomoro.ui.theme.BackgroundColor
+import com.agiztya.podomoro.ui.theme.GreenPrimary
+import com.agiztya.podomoro.ui.theme.NavigationBackground
+import com.agiztya.podomoro.ui.theme.OrangePrimary
 import kotlinx.coroutines.delay
 
 @Composable
@@ -68,7 +73,7 @@ fun Timer(
     modifier: Modifier = Modifier,
     strokeWidth: Dp = 8.dp,
     inactiveBarColor: Color = Color.LightGray,
-    activeBarColor: Color ,
+    activeBarColor: Color,
 ) {
 
     val progress = currentTime / totalTime.toFloat()
@@ -120,7 +125,7 @@ fun Timer(
 }
 
 @Composable
-fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true){
+fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val items = listOf(
         "Pomodoro",
         "Short Break",
@@ -131,11 +136,11 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding() // Pushes the bar above system navigation buttons
-            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
+            .padding(bottom = 24.dp, start = 16.dp, end = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            color = Color(0xFFEDF2F7),
+            color = NavigationBackground,
             shape = RoundedCornerShape(30.dp),
             modifier = Modifier
                 .widthIn(max = 400.dp)
@@ -150,7 +155,7 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
             ) {
                 items.forEachIndexed { index, title ->
                     val isSelected = selectedIndex == index
-                    val activeColor = if (index == 0) Color(0xFFFF5722) else Color(0xFF66BB6A)
+                    val activeColor = if (index == 0) OrangePrimary else GreenPrimary
 
                     Box(
                         modifier = Modifier
@@ -177,7 +182,7 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimerScreen(modifier: Modifier = Modifier){
+fun TimerScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val totalTime = if (selectedTab == 0) 25 * 60 * 1000L else if (selectedTab == 1) 5 * 60 * 1000L else 15 * 60 * 1000L
 
@@ -185,6 +190,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
     var currentTime by remember { mutableStateOf(totalTime) }
     var textField by remember { mutableStateOf("") }
     var showSettings by remember { mutableStateOf(false) }
+    var showCompleteScreen by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -195,6 +201,31 @@ fun TimerScreen(modifier: Modifier = Modifier){
 
     if (showSettings) {
         SettingScreen(onBack = { showSettings = false })
+    } else if (showCompleteScreen) {
+        if (selectedTab == 0) {
+            TimerCompleteScreen(
+                onTakeABreak = {
+                    selectedTab = 1
+                    showCompleteScreen = false
+                },
+                onSkip = {
+                    currentTime = totalTime
+                    showCompleteScreen = false
+                }
+            )
+        } else {
+            BreakCompleteScreen(
+                onStartNextSession = {
+                    selectedTab = 0
+                    showCompleteScreen = false
+                },
+                onExtend = {
+                    currentTime = 5 * 60 * 1000L
+                    isTimerRunning = true
+                    showCompleteScreen = false
+                }
+            )
+        }
     } else {
         Scaffold(
             containerColor = BackgroundColor,
@@ -213,19 +244,23 @@ fun TimerScreen(modifier: Modifier = Modifier){
                                     context.startActivity(
                                         Intent(context, StatsActivity::class.java)
                                     )
-                                } ,
+                                },
                                 enabled = !isTimerRunning
                             ) {
-                                Icon(painter = painterResource(R.drawable.history),
-                                    contentDescription = "History")
+                                Icon(
+                                    painter = painterResource(R.drawable.history),
+                                    contentDescription = "History"
+                                )
                             }
                             Text("Focus Timer", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             IconButton(
                                 onClick = { showSettings = true },
                                 enabled = !isTimerRunning
                             ) {
-                                Icon(painter = painterResource(R.drawable.settings),
-                                    contentDescription = "Settings")
+                                Icon(
+                                    painter = painterResource(R.drawable.settings),
+                                    contentDescription = "Settings"
+                                )
                             }
                         }
                     }
@@ -239,7 +274,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
                     modifier = modifier
                 )
             }
-        ) {innerPadding ->
+        ) { innerPadding ->
             Surface(
                 modifier = Modifier.padding(innerPadding),
                 color = BackgroundColor
@@ -247,7 +282,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val maxHeight = maxHeight
                     val maxWidth = maxWidth
-                    
+
                     Column(
                         Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -262,12 +297,12 @@ fun TimerScreen(modifier: Modifier = Modifier){
                                 totalTime = totalTime,
                                 currentTime = currentTime,
                                 isTimeRunning = isTimerRunning,
-                                activeBarColor = if (selectedTab == 0) Color(0xFFFF5722) else Color(0xFF66BB6A),
+                                activeBarColor = if (selectedTab == 0) OrangePrimary else GreenPrimary,
                                 onTimeChange = { newTime ->
                                     currentTime = newTime
                                     if (newTime <= 0L) {
                                         isTimerRunning = false
-                                        if (selectedTab == 0) selectedTab = 1
+                                        showCompleteScreen = true
                                     }
                                 },
                                 modifier = Modifier.size(timerSize)
@@ -275,7 +310,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
                         }
 
                         Spacer(modifier = Modifier.height(if (maxHeight < 600.dp) 16.dp else 32.dp))
-                        
+
                         if (isTimerRunning) {
                             if (selectedTab == 0) {
                                 Column(
@@ -284,16 +319,16 @@ fun TimerScreen(modifier: Modifier = Modifier){
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
-                                            text="Focusing on: ",
+                                            text = "Focusing on: ",
                                             color = Color.Gray,
                                             fontSize = 16.sp,
-                                            fontWeight= FontWeight.Medium
+                                            fontWeight = FontWeight.Medium
                                         )
                                         Text(
-                                            text=textField.ifEmpty { "Task"},
+                                            text = textField.ifEmpty { "Task" },
                                             color = Color.Gray,
                                             fontSize = 16.sp,
-                                            fontWeight= FontWeight.Bold
+                                            fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }
@@ -330,22 +365,22 @@ fun TimerScreen(modifier: Modifier = Modifier){
                                 Spacer(modifier.height(56.dp))
                             }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(if (maxHeight < 600.dp) 16.dp else 32.dp))
 
                         val buttonColor = if (!isTimerRunning) {
-                            if (selectedTab == 0) Color(0xFFFF5722) else Color(0xFF66BB6A)
+                            if (selectedTab == 0) OrangePrimary else GreenPrimary
                         } else {
                             Color.White
                         }
-                        val textColor = if(!isTimerRunning) Color.White
-                        else if (selectedTab == 0) Color(0xFFFF5722)
-                        else Color(0xFF66BB6A)
-                        val borderColor = if(!isTimerRunning) null
-                        else if (selectedTab == 0) BorderStroke(2.dp, Color(0xFFFF5722))
-                        else BorderStroke(2.dp, Color(0xFF66BB6A))
-                        val buttonTextString = if(isTimerRunning) "Pause"
-                        else if(selectedTab == 0) "Start Focus"
+                        val textColor = if (!isTimerRunning) Color.White
+                        else if (selectedTab == 0) OrangePrimary
+                        else GreenPrimary
+                        val borderColor = if (!isTimerRunning) null
+                        else if (selectedTab == 0) BorderStroke(2.dp, OrangePrimary)
+                        else BorderStroke(2.dp, GreenPrimary)
+                        val buttonTextString = if (isTimerRunning) "Pause"
+                        else if (selectedTab == 0) "Start Focus"
                         else "Start Break"
 
                         val buttonWidth = if (maxWidth < 400.dp) maxWidth * 0.85f else 320.dp
@@ -356,7 +391,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
                             ),
                             border = borderColor,
                             onClick = {
-                                if(currentTime <= 0L){
+                                if (currentTime <= 0L) {
                                     currentTime = totalTime
                                     isTimerRunning = true
                                 } else {
@@ -372,7 +407,7 @@ fun TimerScreen(modifier: Modifier = Modifier){
                                     clip = true
                                 )
                         ) {
-                            Text(text= buttonTextString, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text(text = buttonTextString, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
                     }
                 }
@@ -383,6 +418,6 @@ fun TimerScreen(modifier: Modifier = Modifier){
 
 @Preview
 @Composable
-fun TimerScreenPreview(){
+fun TimerScreenPreview() {
     TimerScreen()
 }
