@@ -1,5 +1,6 @@
 package com.agiztya.podomoro.ui.timer
 
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import com.agiztya.podomoro.R
@@ -54,6 +55,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
+import com.agiztya.podomoro.SettingsActivity
+import com.agiztya.podomoro.StatsActivity
 import kotlinx.coroutines.delay
 
 @Composable
@@ -184,6 +188,8 @@ fun TimerScreen(modifier: Modifier = Modifier){
     var currentTime by remember { mutableStateOf(totalTime) }
     var textField by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
     //reset timer saat pindah tab
     LaunchedEffect(selectedTab) {
         currentTime = totalTime
@@ -202,7 +208,11 @@ fun TimerScreen(modifier: Modifier = Modifier){
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = {} ,
+                            onClick = {
+                                context.startActivity(
+                                    Intent(context, StatsActivity::class.java)
+                                )
+                            } ,
                             enabled = !isTimerRunning
                         ) {
                             Icon(painter = painterResource(R.drawable.history),
@@ -210,7 +220,11 @@ fun TimerScreen(modifier: Modifier = Modifier){
                         }
                         Text("Focus Timer", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         IconButton(
-                            onClick = {},
+                            onClick = {
+                                context.startActivity(
+                                    Intent(context, SettingsActivity::class.java)
+                                )
+                            },
                             enabled = !isTimerRunning
 
                         ) {

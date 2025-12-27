@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,13 +65,13 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.Shape
 
 @Composable
-fun Stat(modifier: Modifier = Modifier) {
+fun StatScreen(modifier: Modifier = Modifier, onBack: () -> Unit) {
     Scaffold(
         modifier = modifier
             .fillMaxSize(),
         containerColor = BackgroundColor,
         topBar = {
-            TopBar()
+            TopBar(onBack = onBack)
         }
     ) { 
         StatContent(
@@ -383,7 +384,9 @@ fun HistoryCard(item: HistoryItemData) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(modifier: Modifier = Modifier) {
+fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
+    val context = LocalContext.current
+
     CenterAlignedTopAppBar(
         modifier = modifier,
         title = {
@@ -394,9 +397,7 @@ fun TopBar(modifier: Modifier = Modifier) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = {
-
-            }) {
+            IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = "Back",
@@ -413,5 +414,5 @@ fun TopBar(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun StatPreview() {
-    Stat()
+    StatScreen(onBack = {})
 }

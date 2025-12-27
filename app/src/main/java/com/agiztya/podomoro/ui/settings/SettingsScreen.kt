@@ -21,7 +21,7 @@ import com.agiztya.podomoro.ui.theme.BackgroundColor
 // --- 1. STATEFUL (Screen Utama yang dipakai di App) ---
 @Composable
 fun SettingScreen(
-    onBackClicked: () -> Unit,
+    onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
     // Ambil data asli dari ViewModel
@@ -32,7 +32,7 @@ fun SettingScreen(
 
     // Panggil Content UI dan kirim datanya
     SettingScreenContent(
-        onBackClicked = onBackClicked,
+        onBackClicked = onBack,
         podomoroLength = podomoroLength,
         shortBreakLength = shortBreakLength,
         longBreakLength = longBreakLength,
@@ -185,7 +185,7 @@ fun SettingsSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolea
                 uncheckedThumbColor = Color.White,
 
                 // Warna Track (latar belakang pil)
-                checkedTrackColor = TextBlue,
+                checkedTrackColor = Color(0xFFFF5722),
                 uncheckedTrackColor = Color.LightGray, // Warna dasar abu-abu
                 uncheckedBorderColor = Color.Transparent,
                 checkedBorderColor = Color.Transparent    
