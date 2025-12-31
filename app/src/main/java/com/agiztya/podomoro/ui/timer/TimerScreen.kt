@@ -27,10 +27,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -129,7 +131,7 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            color = NavigationBackground,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             shape = RoundedCornerShape(30.dp),
             modifier = Modifier
                 .widthIn(max = 400.dp)
@@ -151,14 +153,14 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
                             .weight(1f)
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(26.dp))
-                            .background(if (isSelected) Color.White else Color.Transparent)
+                            .background(if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent)
                             .clickable(enabled = enabled) { onIndexChange(index) },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = title,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                            color = if (isSelected) activeColor else Color.Gray,
+                            color = if (isSelected) activeColor else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             maxLines = 1
                         )
@@ -203,7 +205,7 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
         }
     } else {
         Scaffold(
-            containerColor = BackgroundColor,
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
@@ -224,21 +226,26 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.history),
-                                    contentDescription = "History"
+                                    contentDescription = "History",
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
-                            Text("Focus Timer", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text("Focus Timer", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                             IconButton(
                                 onClick = { showSettings = true },
                                 enabled = !isTimerRunning
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.settings),
-                                    contentDescription = "Settings"
+                                    contentDescription = "Settings",
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
             },
             bottomBar = {
@@ -251,7 +258,7 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
         ) { innerPadding ->
             Surface(
                 modifier = Modifier.padding(innerPadding),
-                color = BackgroundColor
+                color = MaterialTheme.colorScheme.background
             ) {
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val maxHeight = maxHeight

@@ -9,12 +9,20 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    background = DarkBackgroundColor,
+    surface = DarkSurfaceColor,
+    onBackground = DarkTextPrimary,
+    onSurface = DarkTextPrimary,
+    onPrimary = DarkTextPrimary,
+    onSecondary = DarkTextSecondary,
+    onTertiary = DarkTextSecondary
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -22,15 +30,14 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = TextGrey,
     secondary = PurpleGrey40,
     tertiary = Pink40,
+    background = BackgroundColor,
+    surface = Color.White,
+    onBackground = Color.Black,
+    onSurface = Color.Black
 
     /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
     onPrimary = Color.White,
-    onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
     */
 )
 
@@ -46,7 +53,6 @@ fun PodomoroTimerTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

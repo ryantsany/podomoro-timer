@@ -61,26 +61,28 @@ fun SettingScreenContent(
     onToggleDarkMode: (Boolean) -> Unit
 ) {
     Scaffold(
-        containerColor = BackgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = "Settings",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = BackgroundColor
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -134,7 +136,7 @@ fun SettingScreenContent(
 fun SectionHeader(text: String) {
     Text(
         text = text,
-        color = SettingsLabelGrey,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 8.dp, start = 8.dp)
@@ -144,7 +146,7 @@ fun SectionHeader(text: String) {
 @Composable
 fun SettingsGroupCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -162,10 +164,10 @@ fun SettingsItem(title: String, value: String, showDivider: Boolean = true, onCl
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(value, color = SettingsTextBlue, fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = Color.Gray.copy(alpha = 0.5f))
+            Text(value, color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
         }
     }
 }
@@ -179,7 +181,7 @@ fun SettingsSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolea
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
 
         Switch(
             checked = checked,
@@ -188,7 +190,7 @@ fun SettingsSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolea
                 checkedThumbColor = Color.White,
                 uncheckedThumbColor = Color.White,
                 checkedTrackColor = OrangePrimary,
-                uncheckedTrackColor = Color.LightGray,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
                 uncheckedBorderColor = Color.Transparent,
                 checkedBorderColor = Color.Transparent    
             )

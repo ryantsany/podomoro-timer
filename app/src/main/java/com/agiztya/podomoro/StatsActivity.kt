@@ -4,11 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agiztya.podomoro.data.local.PomodoroDatabase
 import com.agiztya.podomoro.data.repository.PomodoroRepository
+import com.agiztya.podomoro.ui.settings.SettingsViewModel
 import com.agiztya.podomoro.ui.stats.StatScreen
 import com.agiztya.podomoro.ui.stats.StatsViewModel
 import com.agiztya.podomoro.ui.theme.PodomoroTimerTheme
@@ -21,13 +24,19 @@ class StatsActivity : ComponentActivity() {
         val repository = PomodoroRepository(database.pomodoroDao(), database.pomodoroSettingDao())
         val viewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return StatsViewModel(repository) as T
+                return when {
+                    modelClass.isAssignableFrom(StatsViewModel::class.java) -> StatsViewModel(repository) as T
+                    modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(repository) as T
+                    else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+                }
             }
         }
 
         enableEdgeToEdge()
         setContent {
-            PodomoroTimerTheme {
+            val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
+            val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
+            PodomoroTimerTheme(darkTheme = isDarkMode) {
                 val statsViewModel: StatsViewModel = viewModel(factory = viewModelFactory)
                 StatScreen(
                     viewModel = statsViewModel,

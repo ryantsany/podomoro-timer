@@ -2,6 +2,7 @@ package com.agiztya.podomoro.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Light Mode Colors
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
@@ -34,3 +35,14 @@ val HistoryPurpleLight = Color(0xFFEDE9FE)
 
 val MintGreen = Color(0xFF6EDC9F)
 val FocusRed = Color(0xFFFF6F61)
+
+// Dark Mode Colors
+val DarkBackgroundColor = Color(0xFF0A0A0A)
+val DarkSurfaceColor = Color(0xFF161616)
+val DarkCardColor = Color(0xFF1F1F1F)
+val DarkTextPrimary = Color(0xFFFFFFFF)
+val DarkTextSecondary = Color(0xFFA0A0A0)
+val DarkGreyText = Color(0xFF707070)
+val DarkNavigationBackground = Color(0xFF121212)
+val DarkSettingsTextBlue = Color(0xFF90CAF9)
+val DarkSettingsLabelGrey = Color(0xFF909090)
