@@ -16,7 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agiztya.podomoro.ui.theme.BackgroundColor
 import com.agiztya.podomoro.ui.theme.OrangePrimary
 import com.agiztya.podomoro.ui.theme.SettingsLabelGrey
@@ -25,8 +24,8 @@ import com.agiztya.podomoro.ui.theme.SettingsTextBlue
 // --- 1. STATEFUL (Screen Utama yang dipakai di App) ---
 @Composable
 fun SettingScreen(
-    onBack: () -> Unit,
-    viewModel: SettingsViewModel = viewModel()
+    viewModel: SettingsViewModel,
+    onBack: () -> Unit
 ) {
     // Intercept back gesture
     BackHandler {

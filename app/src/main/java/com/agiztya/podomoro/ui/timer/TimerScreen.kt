@@ -32,12 +32,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,42 +57,32 @@ import com.agiztya.podomoro.StatsActivity
 import com.agiztya.podomoro.ui.complete.BreakCompleteScreen
 import com.agiztya.podomoro.ui.complete.TimerCompleteScreen
 import com.agiztya.podomoro.ui.settings.SettingScreen
+import com.agiztya.podomoro.ui.settings.SettingsViewModel
 import com.agiztya.podomoro.ui.theme.BackgroundColor
 import com.agiztya.podomoro.ui.theme.GreenPrimary
 import com.agiztya.podomoro.ui.theme.NavigationBackground
 import com.agiztya.podomoro.ui.theme.OrangePrimary
-import kotlinx.coroutines.delay
 
 @Composable
 fun Timer(
     totalTime: Long,
     currentTime: Long,
     isTimeRunning: Boolean,
-    onTimeChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
     strokeWidth: Dp = 8.dp,
     inactiveBarColor: Color = Color.LightGray,
     activeBarColor: Color,
 ) {
-
-    val progress = currentTime / totalTime.toFloat()
+    val progress = if (totalTime > 0) currentTime / totalTime.toFloat() else 0f
 
     val totalSeconds = currentTime / 1000
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
 
-    LaunchedEffect(isTimeRunning, currentTime) {
-        if (isTimeRunning && currentTime > 0L) {
-            delay(1000L)
-            onTimeChange(currentTime - 1000L)
-        }
-    }
-
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-
         Canvas(modifier = Modifier.fillMaxSize()) {
             val arcSize = size.minDimension
 
@@ -135,7 +124,7 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding() // Pushes the bar above system navigation buttons
+            .navigationBarsPadding()
             .padding(bottom = 24.dp, start = 16.dp, end = 16.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -182,48 +171,34 @@ fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimerScreen(modifier: Modifier = Modifier) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val totalTime = if (selectedTab == 0) 25 * 60 * 1000L else if (selectedTab == 1) 5 * 60 * 1000L else 15 * 60 * 1000L
-
-    var isTimerRunning by remember { mutableStateOf(false) }
-    var currentTime by remember { mutableStateOf(totalTime) }
-    var textField by remember { mutableStateOf("") }
+fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel) {
+    val selectedTab by viewModel.selectedTab.collectAsState()
+    val isTimerRunning by viewModel.isTimerRunning.collectAsState()
+    val currentTime by viewModel.currentTime.collectAsState()
+    val showCompleteScreen by viewModel.showCompleteScreen.collectAsState()
+    val taskName by viewModel.taskName.collectAsState()
+    
     var showSettings by remember { mutableStateOf(false) }
-    var showCompleteScreen by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-
-    LaunchedEffect(selectedTab) {
-        currentTime = totalTime
-        isTimerRunning = false
+    val totalTime = when (selectedTab) {
+        0 -> 25 * 60 * 1000L
+        1 -> 5 * 60 * 1000L
+        else -> 15 * 60 * 1000L
     }
 
     if (showSettings) {
-        SettingScreen(onBack = { showSettings = false })
+        SettingScreen(onBack = { showSettings = false }, viewModel = settingsViewModel)
     } else if (showCompleteScreen) {
         if (selectedTab == 0) {
             TimerCompleteScreen(
-                onTakeABreak = {
-                    selectedTab = 1
-                    showCompleteScreen = false
-                },
-                onSkip = {
-                    currentTime = totalTime
-                    showCompleteScreen = false
-                }
+                onTakeABreak = { viewModel.takeABreak() },
+                onSkip = { viewModel.skipBreak() }
             )
         } else {
             BreakCompleteScreen(
-                onStartNextSession = {
-                    selectedTab = 0
-                    showCompleteScreen = false
-                },
-                onExtend = {
-                    currentTime = 5 * 60 * 1000L
-                    isTimerRunning = true
-                    showCompleteScreen = false
-                }
+                onStartNextSession = { viewModel.skipBreak() },
+                onExtend = { viewModel.extendBreak() }
             )
         }
     } else {
@@ -269,9 +244,8 @@ fun TimerScreen(modifier: Modifier = Modifier) {
             bottomBar = {
                 BottomBar(
                     selectedIndex = selectedTab,
-                    onIndexChange = { selectedTab = it },
-                    enabled = !isTimerRunning,
-                    modifier = modifier
+                    onIndexChange = { viewModel.onTabSelected(it) },
+                    enabled = !isTimerRunning
                 )
             }
         ) { innerPadding ->
@@ -298,13 +272,6 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                                 currentTime = currentTime,
                                 isTimeRunning = isTimerRunning,
                                 activeBarColor = if (selectedTab == 0) OrangePrimary else GreenPrimary,
-                                onTimeChange = { newTime ->
-                                    currentTime = newTime
-                                    if (newTime <= 0L) {
-                                        isTimerRunning = false
-                                        showCompleteScreen = true
-                                    }
-                                },
                                 modifier = Modifier.size(timerSize)
                             )
                         }
@@ -325,7 +292,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                                             fontWeight = FontWeight.Medium
                                         )
                                         Text(
-                                            text = textField.ifEmpty { "Task" },
+                                            text = taskName.ifEmpty { "Task" },
                                             color = Color.Gray,
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold
@@ -333,14 +300,14 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                                     }
                                 }
                             } else {
-                                Spacer(modifier.height(50.dp))
+                                Spacer(Modifier.height(50.dp))
                             }
                         } else {
                             if (selectedTab == 0) {
                                 val fieldWidth = if (maxWidth < 400.dp) maxWidth * 0.85f else 320.dp
                                 BasicTextField(
-                                    value = textField,
-                                    onValueChange = { textField = it },
+                                    value = taskName,
+                                    onValueChange = { viewModel.onTaskNameChanged(it) },
                                     modifier = Modifier.width(fieldWidth).height(56.dp).shadow(
                                         elevation = 2.dp,
                                         shape = RoundedCornerShape(24.dp),
@@ -351,7 +318,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                                             modifier = Modifier.padding(horizontal = 20.dp),
                                             contentAlignment = Alignment.CenterStart
                                         ) {
-                                            if (textField.isEmpty())
+                                            if (taskName.isEmpty())
                                                 Text(
                                                     "What are you working on?",
                                                     color = Color.LightGray,
@@ -362,7 +329,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                                     }
                                 )
                             } else {
-                                Spacer(modifier.height(56.dp))
+                                Spacer(Modifier.height(56.dp))
                             }
                         }
 
@@ -390,14 +357,7 @@ fun TimerScreen(modifier: Modifier = Modifier) {
                                 contentColor = textColor
                             ),
                             border = borderColor,
-                            onClick = {
-                                if (currentTime <= 0L) {
-                                    currentTime = totalTime
-                                    isTimerRunning = true
-                                } else {
-                                    isTimerRunning = !isTimerRunning
-                                }
-                            },
+                            onClick = { viewModel.toggleTimer() },
                             modifier = Modifier
                                 .width(buttonWidth)
                                 .height(56.dp)
@@ -414,10 +374,4 @@ fun TimerScreen(modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun TimerScreenPreview() {
-    TimerScreen()
 }

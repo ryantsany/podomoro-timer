@@ -1,17 +1,7 @@
 package com.agiztya.podomoro.ui.stats
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,18 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,20 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.agiztya.podomoro.ui.theme.BackgroundColor
-import com.agiztya.podomoro.ui.theme.BrightChartBar
-import com.agiztya.podomoro.ui.theme.HistoryBlue
-import com.agiztya.podomoro.ui.theme.HistoryBlueLight
-import com.agiztya.podomoro.ui.theme.HistoryGreen
-import com.agiztya.podomoro.ui.theme.HistoryGreenLight
-import com.agiztya.podomoro.ui.theme.HistoryPurple
-import com.agiztya.podomoro.ui.theme.HistoryPurpleLight
-import com.agiztya.podomoro.ui.theme.HistoryRed
-import com.agiztya.podomoro.ui.theme.HistoryRedLight
-import com.agiztya.podomoro.ui.theme.LightChartBar
-import com.agiztya.podomoro.ui.theme.LightGreyBackground
-import com.agiztya.podomoro.ui.theme.LightGreyText
-import com.agiztya.podomoro.ui.theme.TextGrey
+import com.agiztya.podomoro.data.local.entity.PomodoroSession
+import com.agiztya.podomoro.ui.theme.*
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
@@ -70,117 +38,106 @@ import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.Shape
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
-fun StatScreen(modifier: Modifier = Modifier, onBack: () -> Unit) {
+fun StatScreen(viewModel: StatsViewModel, onBack: () -> Unit) {
+    val allSessions by viewModel.allSessions.collectAsState()
+    val todayFocusMinutes by viewModel.todayFocusMinutes.collectAsState()
+    val todaySessionsCount by viewModel.todaySessionsCount.collectAsState()
+    val weeklyActivityData by viewModel.weeklyActivityData.collectAsState()
+
     Scaffold(
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         containerColor = BackgroundColor,
         topBar = {
             TopBar(onBack = onBack)
         }
-    ) { 
-        StatContent(
-            modifier = Modifier.padding(it)
-        )
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Summary(todayFocusMinutes, todaySessionsCount)
+            WeeklyActivity(weeklyActivityData)
+            RecentHistory(allSessions)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 
 @Composable
-fun StatContent(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Summary()
-        WeeklyActivity()
-        RecentHistory()
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
+fun Summary(focusMinutes: Int, sessionsCount: Int) {
+    val hours = focusMinutes / 60
+    val minutes = focusMinutes % 60
+    val focusText = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
 
-@Composable
-fun Summary() {
     Row(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Card(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(15.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ){
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Today's Focus",
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextGrey
-                )
-                Text(
-                    text = "4h 15m",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 24.sp
-                )
-            }
-        }
-        Card(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(15.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ){
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Sessions",
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextGrey
-                )
-                Text(
-                    text = "5",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 24.sp
-                )
-            }
+        SummaryCard(
+            title = "Today's Focus",
+            value = focusText,
+            modifier = Modifier.weight(1f)
+        )
+        SummaryCard(
+            title = "Sessions",
+            value = sessionsCount.toString(),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
 
+@Composable
+fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(15.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(15.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.SemiBold,
+                color = TextGrey
+            )
+            Text(
+                text = value,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 24.sp
+            )
         }
     }
 }
 
 @Composable
-fun WeeklyActivity(modifier: Modifier = Modifier) {
+fun WeeklyActivity(weeklyData: List<Int>, modifier: Modifier = Modifier) {
     Card(
         modifier = Modifier.fillMaxWidth(0.9f),
         shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ){
-        Column(
-            modifier = Modifier
-        ) {
+    ) {
+        Column {
             Row(
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 10.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    modifier = modifier
-                        .fillMaxWidth(0.65f),
+                    modifier = Modifier.fillMaxWidth(0.65f),
                     text = "Weekly Activity",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -192,42 +149,31 @@ fun WeeklyActivity(modifier: Modifier = Modifier) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        modifier = modifier
-                            .padding(vertical = 4.dp, horizontal = 8.dp),
+                        modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                         text = "Last 7 Days",
                         fontWeight = FontWeight.SemiBold,
                         color = LightGreyText
                     )
                 }
             }
-
-            WeeklyActivityChart()
+            WeeklyActivityChart(weeklyData)
         }
-
     }
 }
 
 @Composable
-fun WeeklyActivityChart() {
-    val activitiesCount = listOf(
-        2, 1, 4, 5, 3, 4, 2
-    )
-
+fun WeeklyActivityChart(weeklyData: List<Int>) {
     var highestActivityIndex = 0
-
-    for (i in 0 until activitiesCount.size - 1) {
-        if (activitiesCount[i] > activitiesCount[highestActivityIndex]) {
+    for (i in weeklyData.indices) {
+        if (weeklyData[i] > weeklyData[highestActivityIndex]) {
             highestActivityIndex = i
         }
     }
 
     val modelProducer = remember { CartesianChartModelProducer() }
-
-    LaunchedEffect(Unit) {
+    LaunchedEffect(weeklyData) {
         modelProducer.runTransaction {
-            columnSeries {
-                series(activitiesCount)
-            }
+            columnSeries { series(weeklyData) }
         }
     }
 
@@ -236,7 +182,6 @@ fun WeeklyActivityChart() {
         thickness = 24.dp,
         shape = Shape.rounded(allPercent = 50)
     )
-
     val brightRedColumn = rememberLineComponent(
         color = BrightChartBar,
         thickness = 24.dp,
@@ -244,37 +189,34 @@ fun WeeklyActivityChart() {
     )
 
     val columnProvider = object : ColumnCartesianLayer.ColumnProvider {
-        override fun getColumn(
-            entry: ColumnCartesianLayerModel.Entry,
-            seriesIndex: Int,
-            extraStore: ExtraStore
-        ): LineComponent {
-            return if (entry.x.toInt() == highestActivityIndex) brightRedColumn else lightPinkColumn
+        override fun getColumn(entry: ColumnCartesianLayerModel.Entry, seriesIndex: Int, extraStore: ExtraStore): LineComponent {
+            return if (entry.x.toInt() == highestActivityIndex && weeklyData[highestActivityIndex] > 0) brightRedColumn else lightPinkColumn
         }
-
-        override fun getWidestSeriesColumn(
-            seriesIndex: Int,
-            extraStore: ExtraStore
-        ): LineComponent {
-            return brightRedColumn
-        }
+        override fun getWidestSeriesColumn(seriesIndex: Int, extraStore: ExtraStore): LineComponent = brightRedColumn
     }
 
     val chart = rememberCartesianChart(
-        rememberColumnCartesianLayer(
-            columnProvider = columnProvider,
-            columnCollectionSpacing = 6.dp
-        ),
+        rememberColumnCartesianLayer(columnProvider = columnProvider, columnCollectionSpacing = 6.dp),
         bottomAxis = rememberBottomAxis(
-            line = rememberLineComponent(
-                thickness = 0.dp
-            ),
-            label = rememberTextComponent(
-                color = LightGreyText,
-                textSize = 14.sp
-            ),
+            line = rememberLineComponent(thickness = 0.dp),
+            label = rememberTextComponent(color = LightGreyText, textSize = 14.sp),
             valueFormatter = { value, _, _ ->
-                listOf("S", "M", "T", "W", "T", "F", "S").getOrNull(value.toInt()) ?: ""
+                val days = listOf("S", "M", "T", "W", "T", "F", "S")
+                val calendar = Calendar.getInstance()
+                // The data is: index 6 is today, 5 is yesterday, etc.
+                // We want to label them with correct day names.
+                calendar.add(Calendar.DAY_OF_YEAR, value.toInt() - 6)
+                val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon...
+                when(dayOfWeek) {
+                    Calendar.SUNDAY -> "S"
+                    Calendar.MONDAY -> "M"
+                    Calendar.TUESDAY -> "T"
+                    Calendar.WEDNESDAY -> "W"
+                    Calendar.THURSDAY -> "T"
+                    Calendar.FRIDAY -> "F"
+                    Calendar.SATURDAY -> "S"
+                    else -> ""
+                }
             },
             tick = null,
             guideline = null
@@ -284,23 +226,15 @@ fun WeeklyActivityChart() {
     CartesianChartHost(
         chart = chart,
         modelProducer = modelProducer,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp)
-            .padding(16.dp),
-        scrollState = rememberVicoScrollState(
-            scrollEnabled = false,
-            autoScrollCondition = AutoScrollCondition.Never,
-        )
+        modifier = Modifier.fillMaxWidth().height(280.dp).padding(16.dp),
+        scrollState = rememberVicoScrollState(scrollEnabled = false, autoScrollCondition = AutoScrollCondition.Never)
     )
 }
 
 @Composable
-fun RecentHistory(modifier: Modifier = Modifier) {
+fun RecentHistory(sessions: List<PomodoroSession>) {
     Column(
-        modifier = modifier
-            .padding(horizontal = 16.dp, vertical = 24.dp)
-            .fillMaxWidth()
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp).fillMaxWidth()
     ) {
         Text(
             text = "Recent History",
@@ -309,32 +243,30 @@ fun RecentHistory(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        val historyItems = listOf(
-            HistoryItemData("Study Math", "10:00 AM", "25 min", Icons.Default.Edit, HistoryRed, HistoryRedLight),
-            HistoryItemData("Reading", "9:15 AM", "25 min", Icons.Default.Add, HistoryBlue, HistoryBlueLight),
-            HistoryItemData("Coding", "8:00 AM", "50 min", Icons.Default.Call, HistoryGreen, HistoryGreenLight),
-            HistoryItemData("Writing", "Yesterday", "25 min", Icons.Default.Edit, HistoryPurple, HistoryPurpleLight)
-        )
-
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            historyItems.forEach { item ->
-                HistoryCard(item)
+            sessions.forEach { session ->
+                HistoryCard(session)
             }
         }
     }
 }
 
-data class HistoryItemData(
-    val title: String,
-    val time: String,
-    val duration: String,
-    val icon: ImageVector,
-    val iconColor: Color,
-    val iconBgColor: Color
-)
-
 @Composable
-fun HistoryCard(item: HistoryItemData) {
+fun HistoryCard(session: PomodoroSession) {
+    val timeFormatter = SimpleDateFormat("h:mm a", Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = session.timestamp
+    val sessionTime = timeFormatter.format(calendar.time)
+    
+    val today = Calendar.getInstance()
+    val isToday = today.get(Calendar.DATE) == calendar.get(Calendar.DATE) &&
+            today.get(Calendar.MONTH) == calendar.get(Calendar.MONTH) &&
+            today.get(Calendar.YEAR) == calendar.get(Calendar.YEAR)
+    
+    val displayDate = if (isToday) sessionTime else dateFormatter.format(calendar.time)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -342,48 +274,29 @@ fun HistoryCard(item: HistoryItemData) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(item.iconBgColor, CircleShape),
+                modifier = Modifier.size(48.dp).background(HistoryRedLight, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = item.icon,
+                    imageVector = Icons.Default.Edit,
                     contentDescription = null,
-                    tint = item.iconColor,
+                    tint = HistoryRed,
                     modifier = Modifier.size(24.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = item.time,
-                    color = LightGreyText,
-                    fontSize = 14.sp
-                )
+                Text(text = session.taskName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = displayDate, color = LightGreyText, fontSize = 14.sp)
             }
             Box(
-                modifier = Modifier
-                    .background(LightGreyBackground, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier.background(LightGreyBackground, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(
-                    text = item.duration,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = TextGrey
-                )
+                Text(text = "${session.durationMinutes} min", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextGrey)
             }
         }
     }
@@ -391,33 +304,14 @@ fun HistoryCard(item: HistoryItemData) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
+fun TopBar(onBack: () -> Unit) {
     CenterAlignedTopAppBar(
-        modifier = modifier,
-        title = {
-            Text(
-                text = "Activity",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
-        },
+        title = { Text(text = "Activity", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = "Back",
-                    modifier = Modifier.size(28.dp)
-                )
+                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", modifier = Modifier.size(28.dp))
             }
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = BackgroundColor
-        )
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = BackgroundColor)
     )
-}
-
-@Preview
-@Composable
-private fun StatPreview() {
-    StatScreen(onBack = {})
 }

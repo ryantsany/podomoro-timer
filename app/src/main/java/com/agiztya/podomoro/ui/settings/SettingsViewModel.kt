@@ -1,35 +1,53 @@
 package com.agiztya.podomoro.ui.settings
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import com.agiztya.podomoro.data.local.entity.PomodoroSetting
+import com.agiztya.podomoro.data.repository.PomodoroRepository
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(private val repository: PomodoroRepository) : ViewModel() {
 
-    // State untuk podomoro Length (Default 25)
-    private val _podomoroLength = MutableStateFlow(25)
-    val podomoroLength: StateFlow<Int> = _podomoroLength.asStateFlow()
+    private val _settings = repository.getSettings()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PomodoroSetting())
 
-    // State untuk Short Break (Default 5)
-    private val _shortBreakLength = MutableStateFlow(5)
-    val shortBreakLength: StateFlow<Int> = _shortBreakLength.asStateFlow()
+    val podomoroLength: StateFlow<Int> = _settings
+        .map { it?.pomodoroDuration ?: 25 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 25)
 
-    // State untuk Long Break (Default 15)
-    private val _longBreakLength = MutableStateFlow(15)
-    val longBreakLength: StateFlow<Int> = _longBreakLength.asStateFlow()
+    val shortBreakLength: StateFlow<Int> = _settings
+        .map { it?.shortBreakDuration ?: 5 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5)
 
-    // State untuk Dark Mode (Default false/mati)
-    private val _isDarkMode = MutableStateFlow(false)
-    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+    val longBreakLength: StateFlow<Int> = _settings
+        .map { it?.longBreakDuration ?: 15 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 15)
 
-    // Fungsi untuk mengubah Dark Mode
+    val isDarkMode: StateFlow<Boolean> = _settings
+        .map { it?.isDarkMode ?: false }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun toggleDarkMode(isEnabled: Boolean) {
-        _isDarkMode.value = isEnabled
+        updateSettings { it.copy(isDarkMode = isEnabled) }
     }
 
-    // Fungsi untuk mengubah Durasi (Nanti dipanggil dari Dialog)
-    fun updatepodomoroLength(newLength: Int) {
-        _podomoroLength.value = newLength
+    fun updatePomodoroLength(newLength: Int) {
+        updateSettings { it.copy(pomodoroDuration = newLength) }
+    }
+
+    fun updateShortBreakLength(newLength: Int) {
+        updateSettings { it.copy(shortBreakDuration = newLength) }
+    }
+
+    fun updateLongBreakLength(newLength: Int) {
+        updateSettings { it.copy(longBreakDuration = newLength) }
+    }
+
+    private fun updateSettings(transform: (PomodoroSetting) -> PomodoroSetting) {
+        viewModelScope.launch {
+            val current = _settings.value ?: PomodoroSetting()
+            repository.saveSettings(transform(current))
+        }
     }
 }

@@ -2,13 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.agiztya.podomoro"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.agiztya.podomoro"
@@ -42,6 +41,9 @@ android {
 }
 
 dependencies {
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     implementation("io.github.ehsannarmani:compose-charts:0.1.10")
     implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.28")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
