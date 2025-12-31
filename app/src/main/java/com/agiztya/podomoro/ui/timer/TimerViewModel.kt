@@ -42,12 +42,13 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
 
     private val _showCompleteScreen = MutableStateFlow(false)
     val showCompleteScreen: StateFlow<Boolean> = _showCompleteScreen.asStateFlow()
+    private var hasTimerStarted = false
 
     init {
         // Initialize current time based on settings when they are loaded
         viewModelScope.launch {
             _settings.collect { settings ->
-                if (!_isTimerRunning.value && !_showCompleteScreen.value) {
+                if (!_isTimerRunning.value && !_showCompleteScreen.value && !hasTimerStarted) {
                     _currentTime.value = getDurationForTab(_selectedTab.value)
                 }
             }
@@ -112,6 +113,7 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
             // Fallback when service not bound
             _currentTime.value = getDurationForTab(index)
         }
+        hasTimerStarted = false
     }
 
     fun onTaskNameChanged(newName: String) {
@@ -125,7 +127,13 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
         if (_isTimerRunning.value) {
             pauseTimer(context)
         } else {
-            startTimer(context)
+            // If timer was started before (paused), resume it
+            // Otherwise start fresh
+            if (hasTimerStarted) {
+                resumeTimer(context)
+            } else {
+                startTimer(context)
+            }
         }
     }
 
@@ -145,6 +153,14 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
             putExtra(TimerService.EXTRA_TASK_NAME, _taskName.value)
         }
         context.startService(intent)
+        hasTimerStarted = true
+    }
+
+    private fun resumeTimer(context: Context) {
+        val intent = Intent(context, TimerService::class.java).apply {
+            action = TimerService.ACTION_RESUME
+        }
+        context.startService(intent)
     }
 
     private fun pauseTimer(context: Context) {
@@ -162,6 +178,7 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
         context.startService(intent)
         
         // Reset local state
+        hasTimerStarted = false
         _currentTime.value = getDurationForTab(_selectedTab.value)
     }
 
@@ -173,6 +190,7 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
     fun takeABreak() {
         _selectedTab.value = 1
         _showCompleteScreen.value = false
+        hasTimerStarted = false
         timerService?.apply {
             resetFinishedState()
             setTimerMode(TimerService.TimerMode.SHORT_BREAK)
@@ -184,6 +202,7 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
     fun skipBreak() {
         _selectedTab.value = 0
         _showCompleteScreen.value = false
+        hasTimerStarted = false
         timerService?.apply {
             resetFinishedState()
             setTimerMode(TimerService.TimerMode.FOCUS)
