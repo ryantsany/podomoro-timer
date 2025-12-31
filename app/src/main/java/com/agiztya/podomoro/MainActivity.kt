@@ -1,14 +1,19 @@
 package com.agiztya.podomoro
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,21 +29,37 @@ class MainActivity : ComponentActivity() {
     
     private var timerService: TimerService? = null
     private var isBound = false
+    private var timerViewModel: TimerViewModel? = null
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             val binder = service as TimerService.TimerBinder
             timerService = binder.getService()
             isBound = true
+            
+            // Bind ViewModel to service
+            timerViewModel?.bindToService(binder.getService(), this@MainActivity)
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
             isBound = false
+            timerViewModel?.unbindFromService()
         }
+    }
+
+    // Permission request launcher for Android 13+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        // Permission result handled - notifications will work if granted
+        // If not granted, the app will still function but without notifications
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Request notification permission for Android 13+
+        requestNotificationPermission()
         
         val database = PomodoroDatabase.getDatabase(this)
         val repository = PomodoroRepository(database.pomodoroDao(), database.pomodoroSettingDao())
@@ -54,6 +75,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Bind to TimerService
         Intent(this, TimerService::class.java).also { intent ->
             bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
@@ -61,18 +83,58 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PodomoroTimerTheme {
-                val timerViewModel: TimerViewModel = viewModel(factory = viewModelFactory)
+                val timerVm: TimerViewModel = viewModel(factory = viewModelFactory)
                 val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
-                TimerScreen(viewModel = timerViewModel, settingsViewModel = settingsViewModel)
+                
+                // Store reference for service binding
+                timerViewModel = timerVm
+                
+                // If service is already bound, connect the ViewModel
+                timerService?.let { service ->
+                    timerVm.bindToService(service, this)
+                }
+                
+                TimerScreen(viewModel = timerVm, settingsViewModel = settingsViewModel)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh timer when returning from settings
+        timerViewModel?.refreshFromSettings()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         if (isBound) {
+            timerViewModel?.unbindFromService()
             unbindService(connection)
             isBound = false
+        }
+    }
+
+    /**
+     * Requests notification permission for Android 13 (API 33) and above.
+     */
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // Permission already granted
+                }
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    // Show rationale if needed, then request
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                else -> {
+                    // Directly request permission
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
         }
     }
 }
