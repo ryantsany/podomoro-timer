@@ -117,7 +117,7 @@ fun Timer(
 @Composable
 fun BottomBar(selectedIndex: Int, onIndexChange: (Int) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val items = listOf(
-        "Pomodoro",
+        "Komodoro",
         "Short Break",
         "Long Break"
     )

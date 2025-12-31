@@ -107,7 +107,7 @@ fun SettingScreenContent(
 
             SettingsGroupCard {
                 SettingsItem(
-                    title = "Podomoro Length",
+                    title = "Komodoro Length",
                     value = "$podomoroLength min",
                     onClick = { showDialog = SettingsType.PODOMORO }
                 )

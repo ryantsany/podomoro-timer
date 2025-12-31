@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.PodomoroTimer" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.PodomoroTimer" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Disable splash screen for Android 12+ -->
+        <item name="android:windowSplashScreenBackground">@android:color/white</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <item name="android:windowDisablePreview">true</item>
+    </style>
 </resources>

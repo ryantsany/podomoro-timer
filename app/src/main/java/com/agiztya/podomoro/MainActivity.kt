@@ -15,6 +15,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -23,9 +26,11 @@ import com.agiztya.podomoro.data.local.PomodoroDatabase
 import com.agiztya.podomoro.data.repository.PomodoroRepository
 import com.agiztya.podomoro.service.TimerService
 import com.agiztya.podomoro.ui.settings.SettingsViewModel
+import com.agiztya.podomoro.ui.splash.SplashScreen
 import com.agiztya.podomoro.ui.theme.PodomoroTimerTheme
 import com.agiztya.podomoro.ui.timer.TimerScreen
 import com.agiztya.podomoro.ui.timer.TimerViewModel
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : ComponentActivity() {
     
@@ -59,6 +64,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().setKeepOnScreenCondition { false }
         
         // Request notification permission for Android 13+
         requestNotificationPermission()
@@ -96,8 +102,16 @@ class MainActivity : ComponentActivity() {
                 timerService?.let { service ->
                     timerVm.bindToService(service, this)
                 }
-                
-                TimerScreen(viewModel = timerVm, settingsViewModel = settingsViewModel)
+
+                var showSplash by remember { mutableStateOf(true) }
+
+                if(showSplash){
+                    SplashScreen(
+                        onFinish = { showSplash = false }
+                    )
+                }else{
+                    TimerScreen(viewModel = timerVm, settingsViewModel = settingsViewModel)
+                }
             }
         }
     }
