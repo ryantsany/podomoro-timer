@@ -222,6 +222,11 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
                 else -> settings.pomodoroDuration * 60 * 1000L
             }
         }
-        return 25 * 60 * 1000L
+        return when (index) {
+            0 -> 25 * 60 * 1000L
+            1 -> 5 * 60 * 1000L
+            2 -> 15 * 60 * 1000L
+            else -> 25 * 60 * 1000L
+        }
     }
 }
