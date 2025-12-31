@@ -38,6 +38,7 @@ import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.Shape
+import androidx.compose.material3.MaterialTheme
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -50,7 +51,7 @@ fun StatScreen(viewModel: StatsViewModel, onBack: () -> Unit) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = BackgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopBar(onBack = onBack)
         }
@@ -100,7 +101,7 @@ fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -112,12 +113,13 @@ fun SummaryCard(title: String, value: String, modifier: Modifier = Modifier) {
             Text(
                 text = title,
                 fontWeight = FontWeight.SemiBold,
-                color = TextGrey
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 24.sp
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -128,7 +130,7 @@ fun WeeklyActivity(weeklyData: List<Int>, modifier: Modifier = Modifier) {
     Card(
         modifier = Modifier.fillMaxWidth(0.9f),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
@@ -140,12 +142,13 @@ fun WeeklyActivity(weeklyData: List<Int>, modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(0.65f),
                     text = "Weekly Activity",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(LightGreyBackground, RoundedCornerShape(10.dp)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -240,6 +243,7 @@ fun RecentHistory(sessions: List<PomodoroSession>) {
             text = "Recent History",
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -270,7 +274,7 @@ fun HistoryCard(session: PomodoroSession) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -290,13 +294,13 @@ fun HistoryCard(session: PomodoroSession) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = session.taskName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = displayDate, color = LightGreyText, fontSize = 14.sp)
+                Text(text = session.taskName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = displayDate, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             }
             Box(
-                modifier = Modifier.background(LightGreyBackground, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(text = "${session.durationMinutes} min", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextGrey)
+                Text(text = "${session.durationMinutes} min", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -306,12 +310,12 @@ fun HistoryCard(session: PomodoroSession) {
 @Composable
 fun TopBar(onBack: () -> Unit) {
     CenterAlignedTopAppBar(
-        title = { Text(text = "Activity", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+        title = { Text(text = "Activity", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground) },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", modifier = Modifier.size(28.dp))
+                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", modifier = Modifier.size(28.dp), tint = MaterialTheme.colorScheme.onBackground)
             }
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = BackgroundColor)
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
     )
 }

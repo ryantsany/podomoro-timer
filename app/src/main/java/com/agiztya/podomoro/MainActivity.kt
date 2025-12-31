@@ -12,6 +12,8 @@ import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -82,9 +84,10 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            PodomoroTimerTheme {
+            val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
+            val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
+            PodomoroTimerTheme(darkTheme = isDarkMode) {
                 val timerVm: TimerViewModel = viewModel(factory = viewModelFactory)
-                val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
                 
                 // Store reference for service binding
                 timerViewModel = timerVm
