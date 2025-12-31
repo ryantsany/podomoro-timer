@@ -43,13 +43,22 @@ class TimerViewModel(private val repository: PomodoroRepository) : ViewModel() {
     private val _showCompleteScreen = MutableStateFlow(false)
     val showCompleteScreen: StateFlow<Boolean> = _showCompleteScreen.asStateFlow()
     private var hasTimerStarted = false
+    private var hasInitializedSettings = false
 
     init {
         // Initialize current time based on settings when they are loaded
         viewModelScope.launch {
             _settings.collect { settings ->
-                if (!_isTimerRunning.value && !_showCompleteScreen.value && !hasTimerStarted) {
-                    _currentTime.value = getDurationForTab(_selectedTab.value)
+                val isFirstLoad = !hasInitializedSettings && settings != null
+                
+                if (!_isTimerRunning.value && !_showCompleteScreen.value) {
+                    if (isFirstLoad || !hasTimerStarted) {
+                        _currentTime.value = getDurationForTab(_selectedTab.value)
+                    }
+                }
+                
+                if (settings != null && !hasInitializedSettings) {
+                    hasInitializedSettings = true
                 }
             }
         }
