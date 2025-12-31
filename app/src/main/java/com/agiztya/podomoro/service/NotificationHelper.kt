@@ -4,10 +4,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
-import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.agiztya.podomoro.MainActivity
@@ -17,7 +18,8 @@ class NotificationHelper(private val context: Context) {
 
     companion object {
         const val CHANNEL_ID_ONGOING = "timer_ongoing"
-        const val CHANNEL_ID_FINISHED = "timer_finished"
+        // Changed ID to force Android to recognize the new sound setting
+        const val CHANNEL_ID_FINISHED = "timer_finished_v2" 
         const val NOTIFICATION_ID_ONGOING = 1
         const val NOTIFICATION_ID_FINISHED = 2
     }
@@ -41,7 +43,10 @@ class NotificationHelper(private val context: Context) {
                 setShowBadge(false)
             }
 
-            // Finished timer channel (high priority with sound and vibration)
+            // Construct URI for the custom sound in res/raw
+            val soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.timer_finished)
+
+            // Finished timer channel (high priority with custom sound)
             val finishedChannel = NotificationChannel(
                 CHANNEL_ID_FINISHED,
                 "Timer Finished",
@@ -50,8 +55,9 @@ class NotificationHelper(private val context: Context) {
                 description = "Alerts when the timer completes"
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 1000, 200, 1000, 200, 1000, 200, 1000)
+                // Set sound on the channel (Required for API 26+)
                 setSound(
-                    RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
+                    soundUri,
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -86,7 +92,6 @@ class NotificationHelper(private val context: Context) {
             timeString
         }
 
-        // Intent to open the app when notification is tapped
         val contentIntent = PendingIntent.getActivity(
             context,
             0,
@@ -107,7 +112,6 @@ class NotificationHelper(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setPriority(NotificationCompat.PRIORITY_LOW)
 
-        // Add Pause or Resume action based on current state
         if (isRunning) {
             val pauseIntent = createActionIntent(TimerService.ACTION_PAUSE)
             builder.addAction(
@@ -124,7 +128,6 @@ class NotificationHelper(private val context: Context) {
             )
         }
 
-        // Add Stop action
         val stopIntent = createActionIntent(TimerService.ACTION_STOP)
         builder.addAction(
             R.drawable.ic_launcher_foreground,
@@ -145,6 +148,8 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.timer_finished)
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_FINISHED)
             .setContentTitle("$timerMode Complete!")
             .setContentText(getCompletionMessage(timerMode))
@@ -153,7 +158,7 @@ class NotificationHelper(private val context: Context) {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setSound(soundUri) // Set sound on builder for compatibility
             .build()
 
         notificationManager.notify(NOTIFICATION_ID_FINISHED, notification)
