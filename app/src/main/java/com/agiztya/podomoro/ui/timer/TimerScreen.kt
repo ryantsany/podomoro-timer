@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
@@ -180,13 +179,17 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
     val showCompleteScreen by viewModel.showCompleteScreen.collectAsState()
     val taskName by viewModel.taskName.collectAsState()
     
+    val podomoroLength by settingsViewModel.podomoroLength.collectAsState()
+    val shortBreakLength by settingsViewModel.shortBreakLength.collectAsState()
+    val longBreakLength by settingsViewModel.longBreakLength.collectAsState()
+
     var showSettings by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val totalTime = when (selectedTab) {
-        0 -> 25 * 60 * 1000L
-        1 -> 5 * 60 * 1000L
-        else -> 15 * 60 * 1000L
+        0 -> podomoroLength.toLong() * 60 * 1000L
+        1 -> shortBreakLength.toLong() * 60 * 1000L
+        else -> longBreakLength.toLong() * 60 * 1000L
     }
 
     if (showSettings) {
@@ -336,7 +339,7 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
                                     }
                                 )
                             } else {
-                                Spacer(Modifier.height(56.dp))
+                                Spacer(modifier = Modifier.height(56.dp))
                             }
                         }
 

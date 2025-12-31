@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,7 +47,10 @@ fun SettingScreen(
         shortBreakLength = shortBreakLength,
         longBreakLength = longBreakLength,
         isDarkMode = isDarkMode,
-        onToggleDarkMode = { viewModel.toggleDarkMode(it) }
+        onToggleDarkMode = { viewModel.toggleDarkMode(it) },
+        onUpdatePodomoro = { viewModel.updatePomodoroLength(it) },
+        onUpdateShortBreak = { viewModel.updateShortBreakLength(it) },
+        onUpdateLongBreak = { viewModel.updateLongBreakLength(it) }
     )
 }
 
@@ -58,8 +63,13 @@ fun SettingScreenContent(
     shortBreakLength: Int,
     longBreakLength: Int,
     isDarkMode: Boolean,
-    onToggleDarkMode: (Boolean) -> Unit
+    onToggleDarkMode: (Boolean) -> Unit,
+    onUpdatePodomoro: (Int) -> Unit,
+    onUpdateShortBreak: (Int) -> Unit,
+    onUpdateLongBreak: (Int) -> Unit
 ) {
+    var showDialog by remember { mutableStateOf<SettingsType?>(null) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -99,20 +109,19 @@ fun SettingScreenContent(
                 SettingsItem(
                     title = "Podomoro Length",
                     value = "$podomoroLength min",
-                    onClick = { }
+                    onClick = { showDialog = SettingsType.PODOMORO }
                 )
                 HorizontalDivider(color = BackgroundColor, thickness = 1.dp)
                 SettingsItem(
                     title = "Short Break Length",
                     value = "$shortBreakLength min",
-                    onClick = { }
+                    onClick = { showDialog = SettingsType.SHORT_BREAK }
                 )
                 HorizontalDivider(color = BackgroundColor, thickness = 1.dp)
                 SettingsItem(
                     title = "Long Break Length",
                     value = "$longBreakLength min",
-                    showDivider = false,
-                    onClick = { }
+                    onClick = { showDialog = SettingsType.LONG_BREAK }
                 )
             }
 
@@ -128,7 +137,83 @@ fun SettingScreenContent(
                 )
             }
         }
+
+        // Input dialog
+        showDialog?.let { type ->
+            val currentValue = when(type) {
+                SettingsType.PODOMORO -> podomoroLength
+                SettingsType.SHORT_BREAK -> shortBreakLength
+                SettingsType.LONG_BREAK -> longBreakLength
+            }
+            
+            DurationInputDialog(
+                title = "Set ${type.label} Duration",
+                initialValue = currentValue,
+                onDismiss = { showDialog = null },
+                onConfirm = { newValue ->
+                    when(type) {
+                        SettingsType.PODOMORO -> onUpdatePodomoro(newValue)
+                        SettingsType.SHORT_BREAK -> onUpdateShortBreak(newValue)
+                        SettingsType.LONG_BREAK -> onUpdateLongBreak(newValue)
+                    }
+                    showDialog = null
+                }
+            )
+        }
     }
+}
+
+enum class SettingsType(val label: String) {
+    PODOMORO("Podomoro"),
+    SHORT_BREAK("Short Break"),
+    LONG_BREAK("Long Break")
+}
+
+@Composable
+fun DurationInputDialog(
+    title: String,
+    initialValue: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var textValue by remember { mutableStateOf(initialValue.toString()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = title, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+        text = {
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = OrangePrimary,
+                    unfocusedBorderColor = Color.Gray,
+                    focusedLabelColor = OrangePrimary,
+                    unfocusedLabelColor = Color.Black,
+                    cursorColor = OrangePrimary
+                ),
+                value = textValue,
+                onValueChange = { if (it.length <= 3) textValue = it.filter { char -> char.isDigit() } },
+                label = { Text("Duration (minutes)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val newValue = textValue.toIntOrNull() ?: initialValue
+                    if (newValue > 0) onConfirm(newValue) else onDismiss()
+                }
+            ) {
+                Text("Save", color = OrangePrimary, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = Color.Gray)
+            }
+        }
+    )
 }
 
 // --- Helper Components ---
@@ -155,7 +240,7 @@ fun SettingsGroupCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun SettingsItem(title: String, value: String, showDivider: Boolean = true, onClick: () -> Unit) {
+fun SettingsItem(title: String, value: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -208,6 +293,9 @@ fun PreviewSettings() {
         shortBreakLength = 5,
         longBreakLength = 15,
         isDarkMode = false,
-        onToggleDarkMode = {}
+        onToggleDarkMode = {},
+        onUpdatePodomoro = {},
+        onUpdateShortBreak = {},
+        onUpdateLongBreak = {}
     )
 }
