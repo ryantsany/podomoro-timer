@@ -197,6 +197,8 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
     } else if (showCompleteScreen) {
         if (selectedTab == 0) {
             TimerCompleteScreen(
+                taskName = taskName,
+                durationMinutes = podomoroLength,
                 onTakeABreak = { viewModel.takeABreak() },
                 onSkip = { viewModel.skipBreak() }
             )

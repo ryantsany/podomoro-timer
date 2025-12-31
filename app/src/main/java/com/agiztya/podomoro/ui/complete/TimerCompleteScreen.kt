@@ -22,6 +22,8 @@ import com.agiztya.podomoro.ui.theme.FocusRed
 
 @Composable
 fun TimerCompleteScreen(
+    taskName: String,
+    durationMinutes: Int,
     onTakeABreak: () -> Unit,
     onSkip: () -> Unit
 ) {
@@ -68,8 +70,9 @@ fun TimerCompleteScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- Subjudul ---
+            val sessionText = if (taskName.isNotBlank()) "on \"$taskName\"" else "on your task"
             Text(
-                text = "You just focused for 25 minutes on your task.",
+                text = "You just focused for $durationMinutes minutes $sessionText.",
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -117,6 +120,11 @@ fun TimerCompleteScreen(
 @Composable
 fun TimerCompleteScreenPreview() {
     MaterialTheme {
-        TimerCompleteScreen(onTakeABreak = {}, onSkip = {})
+        TimerCompleteScreen(
+            taskName = "Coding",
+            durationMinutes = 25,
+            onTakeABreak = {},
+            onSkip = {}
+        )
     }
 }
