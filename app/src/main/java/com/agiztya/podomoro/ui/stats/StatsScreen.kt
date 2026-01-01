@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -204,12 +205,10 @@ fun WeeklyActivityChart(weeklyData: List<Int>) {
             line = rememberLineComponent(thickness = 0.dp),
             label = rememberTextComponent(color = LightGreyText, textSize = 14.sp),
             valueFormatter = { value, _, _ ->
-                val days = listOf("S", "M", "T", "W", "T", "F", "S")
                 val calendar = Calendar.getInstance()
-                // The data is: index 6 is today, 5 is yesterday, etc.
-                // We want to label them with correct day names.
+                // index 6 is today, 5 is yesterday, etc.
                 calendar.add(Calendar.DAY_OF_YEAR, value.toInt() - 6)
-                val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon...
+                val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
                 when(dayOfWeek) {
                     Calendar.SUNDAY -> "S"
                     Calendar.MONDAY -> "M"
@@ -282,13 +281,13 @@ fun HistoryCard(session: PomodoroSession) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(48.dp).background(HistoryRedLight, CircleShape),
+                modifier = Modifier.size(48.dp).background(HistoryGreenLight, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Edit,
+                    imageVector = Icons.Default.Timer,
                     contentDescription = null,
-                    tint = HistoryRed,
+                    tint = HistoryGreen,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -300,7 +299,7 @@ fun HistoryCard(session: PomodoroSession) {
             Box(
                 modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(text = "${session.durationMinutes} min", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = "${session.durationMinutes} min", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = LightGreyText)
             }
         }
     }

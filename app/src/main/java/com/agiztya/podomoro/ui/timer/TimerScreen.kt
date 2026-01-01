@@ -352,15 +352,30 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
                         } else {
                             Color.White
                         }
-                        val textColor = if (!isTimerRunning) Color.White
-                        else if (selectedTab == 0) OrangePrimary
-                        else GreenPrimary
-                        val borderColor = if (!isTimerRunning) null
-                        else if (selectedTab == 0) BorderStroke(2.dp, OrangePrimary)
-                        else BorderStroke(2.dp, GreenPrimary)
-                        val buttonTextString = if (isTimerRunning) "Pause"
-                        else if (selectedTab == 0) "Start Focus"
-                        else "Start Break"
+
+                        val textColor = if (!isTimerRunning) {
+                            Color.White
+                        } else if (selectedTab == 0) {
+                            OrangePrimary
+                        } else {
+                            GreenPrimary
+                        }
+
+                        val borderColor = if (!isTimerRunning) {
+                            null
+                        } else if (selectedTab == 0) {
+                            BorderStroke(2.dp, OrangePrimary)
+                        } else {
+                            BorderStroke(2.dp, GreenPrimary)
+                        }
+
+                        val buttonTextString = if (isTimerRunning) {
+                            "Pause"
+                        } else if (selectedTab == 0) {
+                            "Start Focus"
+                        } else {
+                            "Start Break"
+                        }
 
                         val buttonWidth = if (maxWidth < 400.dp) maxWidth * 0.85f else 320.dp
                         Button(
@@ -374,7 +389,7 @@ fun TimerScreen(viewModel: TimerViewModel, settingsViewModel: SettingsViewModel)
                                 .width(buttonWidth)
                                 .height(56.dp)
                                 .shadow(
-                                    elevation = 8.dp,
+                                    elevation = 0.dp,
                                     shape = RoundedCornerShape(28.dp),
                                     clip = true
                                 )

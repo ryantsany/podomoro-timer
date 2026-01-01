@@ -179,6 +179,7 @@ fun DurationInputDialog(
     var textValue by remember { mutableStateOf(initialValue.toString()) }
 
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
         title = { Text(text = title, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
         text = {
