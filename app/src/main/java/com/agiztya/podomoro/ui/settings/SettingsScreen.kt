@@ -157,7 +157,8 @@ fun SettingScreenContent(
                         SettingsType.LONG_BREAK -> onUpdateLongBreak(newValue)
                     }
                     showDialog = null
-                }
+                },
+                isDarkMode = isDarkMode
             )
         }
     }
@@ -174,7 +175,8 @@ fun DurationInputDialog(
     title: String,
     initialValue: Int,
     onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit
+    onConfirm: (Int) -> Unit,
+    isDarkMode: Boolean
 ) {
     var textValue by remember { mutableStateOf(initialValue.toString()) }
 
@@ -188,7 +190,7 @@ fun DurationInputDialog(
                     focusedBorderColor = OrangePrimary,
                     unfocusedBorderColor = Color.Gray,
                     focusedLabelColor = OrangePrimary,
-                    unfocusedLabelColor = Color.Black,
+                    unfocusedLabelColor = if(isDarkMode) Color.White else Color.Black,
                     cursorColor = OrangePrimary
                 ),
                 value = textValue,
