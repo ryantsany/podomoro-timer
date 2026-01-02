@@ -2,9 +2,11 @@ package com.agiztya.podomoro.service
 
 import android.annotation.SuppressLint
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import android.os.PowerManager
 import com.agiztya.podomoro.data.local.PomodoroDatabase
 import com.agiztya.podomoro.data.local.entity.PomodoroSession
 import com.agiztya.podomoro.data.repository.PomodoroRepository
@@ -28,6 +30,8 @@ class TimerService : Service() {
 
     private lateinit var notificationHelper: NotificationHelper
     private lateinit var repository: PomodoroRepository
+    
+    private var wakeLock: PowerManager.WakeLock? = null
 
     // Timer Mode enum
     enum class TimerMode(val displayName: String) {
@@ -72,6 +76,10 @@ class TimerService : Service() {
         val database = PomodoroDatabase.getDatabase(this)
         repository = PomodoroRepository(database.pomodoroDao(), database.pomodoroSettingDao())
         
+        // Initialize WakeLock
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PodomoroTimer:TimerWakeLock")
+        
         // Load initial settings
         serviceScope.launch {
             loadSettingsForMode(_timerMode.value)
@@ -104,13 +112,14 @@ class TimerService : Service() {
                 setTimerMode(mode)
             }
         }
-        return START_NOT_STICKY
+        return START_STICKY // System will try to restart service if killed
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onDestroy() {
         super.onDestroy()
+        releaseWakeLock()
         timerJob?.cancel()
         serviceJob.cancel()
     }
@@ -119,12 +128,29 @@ class TimerService : Service() {
         fun getService(): TimerService = this@TimerService
     }
 
+    private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == false) {
+            wakeLock?.acquire(totalDuration + 60000L)
+        }
+    }
+
+    private fun releaseWakeLock() {
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
+        }
+    }
+
+    /**
+     * Starts the timer and enters foreground mode with notification.
+     */
     @SuppressLint("ForegroundServiceType")
     private fun startTimer() {
         if (_isTimerRunning.value) return
         
         _isTimerRunning.value = true
         _isTimerFinished.value = false
+        
+        acquireWakeLock()
         
         // Start foreground with notification
         val totalMinutes = (totalDuration / 1000 / 60).toInt()
@@ -137,28 +163,45 @@ class TimerService : Service() {
         )
         startForeground(NotificationHelper.NOTIFICATION_ID_ONGOING, notification)
         
-        timerJob = serviceScope.launch {
+        timerJob?.cancel()
+        timerJob = serviceScope.launch(Dispatchers.Default) { // Run timer loop off Main thread
+            var lastTime = System.currentTimeMillis()
+            
             while (_currentTime.value > 0 && _isTimerRunning.value) {
                 delay(1000L)
-                _currentTime.value -= 1000L
+                
+                val currentTimeMillis = System.currentTimeMillis()
+                val diff = currentTimeMillis - lastTime
+                lastTime = currentTimeMillis
+                
+                // Subtract actual elapsed time to handle system suspension accurately
+                _currentTime.value = (_currentTime.value - diff).coerceAtLeast(0L)
+                
+                val currentTotalMinutes = (totalDuration / 1000 / 60).toInt()
                 notificationHelper.updateOngoingNotification(
                     _currentTime.value,
                     true,
                     _timerMode.value.displayName,
                     taskName,
-                    totalMinutes
+                    currentTotalMinutes
                 )
             }
             
             if (_currentTime.value <= 0) {
-                onTimerFinished()
+                serviceScope.launch(Dispatchers.Main) {
+                    onTimerFinished()
+                }
             }
         }
     }
 
+    /**
+     * Pauses the timer but keeps the service alive.
+     */
     private fun pauseTimer() {
         _isTimerRunning.value = false
         timerJob?.cancel()
+        releaseWakeLock()
         
         val totalMinutes = (totalDuration / 1000 / 60).toInt()
         notificationHelper.updateOngoingNotification(
@@ -172,44 +215,21 @@ class TimerService : Service() {
         stopForeground(STOP_FOREGROUND_DETACH)
     }
 
+    /**
+     * Resumes the timer from paused state.
+     */
     @SuppressLint("ForegroundServiceType")
     private fun resumeTimer() {
-        if (_isTimerRunning.value) return
-        
-        _isTimerRunning.value = true
-        
-        val totalMinutes = (totalDuration / 1000 / 60).toInt()
-        val notification = notificationHelper.buildOngoingNotification(
-            _currentTime.value,
-            true,
-            _timerMode.value.displayName,
-            taskName,
-            totalMinutes
-        )
-        startForeground(NotificationHelper.NOTIFICATION_ID_ONGOING, notification)
-        
-        timerJob = serviceScope.launch {
-            while (_currentTime.value > 0 && _isTimerRunning.value) {
-                delay(1000L)
-                _currentTime.value -= 1000L
-                notificationHelper.updateOngoingNotification(
-                    _currentTime.value,
-                    true,
-                    _timerMode.value.displayName,
-                    taskName,
-                    totalMinutes
-                )
-            }
-            
-            if (_currentTime.value <= 0) {
-                onTimerFinished()
-            }
-        }
+        startTimer()
     }
 
+    /**
+     * Stops the timer completely and resets.
+     */
     private fun stopTimer() {
         _isTimerRunning.value = false
         timerJob?.cancel()
+        releaseWakeLock()
         
         serviceScope.launch {
             loadSettingsForMode(_timerMode.value)
@@ -220,9 +240,13 @@ class TimerService : Service() {
         stopSelf()
     }
 
+    /**
+     * Called when the timer reaches zero.
+     */
     private fun onTimerFinished() {
         _isTimerRunning.value = false
         _isTimerFinished.value = true
+        releaseWakeLock()
         
         // Show finished notification
         notificationHelper.showFinishedNotification(_timerMode.value.displayName)
@@ -245,7 +269,7 @@ class TimerService : Service() {
     }
 
     fun setTimerMode(mode: TimerMode) {
-        if (_isTimerRunning.value) return // Don't change mode while running
+        if (_isTimerRunning.value) return 
         
         _timerMode.value = mode
         _isTimerFinished.value = false
@@ -263,6 +287,14 @@ class TimerService : Service() {
         _isTimerFinished.value = false
     }
 
+    /**
+     * Gets the current time value (for initial binding).
+     */
+    fun getCurrentTimeValue(): Long = _currentTime.value
+
+    /**
+     * Loads settings from database and sets the appropriate duration.
+     */
     private suspend fun loadSettingsForMode(mode: TimerMode) {
         val settings = repository.getSettings().first()
         val duration = if (settings != null) {
